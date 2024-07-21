@@ -1,0 +1,15 @@
+[Unit]
+Description=Registry
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop %n
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStartPre=/usr/bin/docker pull {{ registry_container }}
+ExecStart=/usr/bin/docker run --rm --network host --name %n -v {{ registry_config_dir }}/config.yml:/etc/docker/registry/config.yml -v {{ registry_docker_volume_name }}:/var/lib/registry {{ registry_container }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+---
+- hosts: ubuntu
+
+  tasks:
+
+  - name: edit /etc/default/grub
+    shell: 
+      cmd: |
+       if [ $(grep -cE "CMDLINE.*ipv6\.disable=1" /etc/default/grub) -ne 2 ]; then
+          sed -i "/CMDLINE/ s/\"\$/ ipv6.disable=1 \"/" /etc/default/grub
+          res=100
+       else
+          res=200
+       fi
+       exit $res
+    register: ed1
+    ignore_errors: True
+    failed_when:  ed1.rc != 100 and ed1.rc != 200
+    changed_when: ed1.rc == 100 
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: check
+    shell:
+      cmd: |
+        grep -E "CMDLINE.*ipv6\.disable=1" /etc/default/grub
+    register: check
+    changed_when: false
+
+  - name: debug
+    debug:
+      msg: "{{ check.stdout }}"
+
+  handlers:
+
+  - name: update grub
+    shell:
+      cmd: |
+        update-grub
+    when: ed1.rc == 100

@@ -1,0 +1,5 @@
+---
+- name: restart registry
+  service:
+    name: "{{ registry_svc_name }}"
+    state: restarted
